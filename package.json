@@ -2,8 +2,9 @@
   "name": "shopping_list_back",
   "version": "1.0.0",
   "description": "Shopping List Backend",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
+    "start": "tsc & node .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
