@@ -2,6 +2,8 @@ import express, {Express, Request, Response} from 'express';
 import mongoose from 'mongoose';
 import {randomBytes} from 'crypto';
 import argon2 from 'argon2';
+import jwt from 'jsonwebtoken';
+import cookieParser from 'cookie-parser';
 
 mongoose.connect('mongodb://localhost:27017/shopping_list').then();
 
@@ -26,6 +28,12 @@ interface IItem {
     title: string;
     description?: string;
     bought: boolean;
+}
+
+interface IJWTPayload {
+    _id: string;
+    name: string;
+    exp: number;
 }
 
 const UserSchema = new mongoose.Schema<IUser>({
@@ -90,6 +98,7 @@ app.use(express.json());
 app.use(express.urlencoded({
     extended: true
 }));
+app.use(cookieParser());
 
 app.get('/', (req: Request, res: Response) => {
     res.json({status: 1});
@@ -125,12 +134,31 @@ app.delete('/lists/:id', async (req: Request, res: Response) => {
 });
 
 app.get('/lists/:listId/items', async (req: Request, res: Response) => {
-    const listId = req.params.listId;
-    if (listId) {
-        const items = await Item.find({list: listId.toString()});
-        res.json(items);
-    } else {
-        res.json({error: {message: 'List id should be provided'}});
+    try {
+        if (req.cookies && req.cookies.token) {
+            console.log('req.cookies && req.cookies.token')
+            const decoded = jwt.verify(req.cookies.token, process.env.SECRET || '', {
+                algorithms: ['HS256']
+            }) as IJWTPayload;
+            if (decoded.exp < Date.now()) {
+                res.clearCookie('token', {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production'
+                }).status(403).json({error: {message: 'Access denied'}});
+            } else {
+                const listId = req.params.listId;
+                if (listId) {
+                    const items = await Item.find({list: listId.toString()});
+                    res.json(items);
+                } else {
+                    res.json({error: {message: 'List id should be provided'}});
+                }
+            }
+        } else {
+            res.status(403).json({error: {message: 'Access denied'}});
+        }
+    } catch (e) {
+        res.status(403).json({error: {message: 'Access denied'}});
     }
 });
 
@@ -182,7 +210,14 @@ app.post('/auth/login', async (req: Request, res: Response) => {
     const user = await User.findOne({email}).lean();
     if (user) {
         if (await argon2.verify(user.password, password)) {
-            // JWT token generate
+            const returnUser: Partial<IUser> = {...user};
+            delete returnUser.password;
+            delete returnUser.salt;
+            const token = generateToken(user);
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production'
+            }).json({user: returnUser});
         } else {
             res.status(401).json({error: {message: 'Invalid credentials'}});
         }
@@ -190,6 +225,19 @@ app.post('/auth/login', async (req: Request, res: Response) => {
         res.status(401).json({error: {message: 'Invalid credentials'}});
     }
 });
+
+function generateToken(user: IUser) {
+    // Set token expiration date to 60 days
+    const exp = Date.now() + 60 * 24 * 3600 * 1000;
+
+    return jwt.sign({
+        _id: user._id,
+        name: user.name.trim(),
+        exp
+    }, process.env.SECRET || '', {
+        algorithm: 'HS256'
+    });
+}
 
 app.listen(port, () => {
     console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
