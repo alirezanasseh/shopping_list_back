@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import {IList} from '.';
+import {IList} from './index';
 
 const ListSchema = new mongoose.Schema<IList>({
     name: {

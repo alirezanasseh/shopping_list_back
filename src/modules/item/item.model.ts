@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import {IItem} from '.';
+import {IItem} from './index';
 
 const ItemSchema = new mongoose.Schema<IItem>({
     title: {

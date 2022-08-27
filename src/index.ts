@@ -1,11 +1,16 @@
-import {Request, Response} from 'express';
-import app from './loaders/express.loader';
+import express from 'express';
+import loader from './loaders';
 import {config} from './config';
 
-app.get('/', (req: Request, res: Response) => {
-    res.json({status: 1});
-});
+async function startServer () {
+    const app = express();
+    await loader(app);
 
-app.listen(config.port, () => {
-    console.log(`⚡️[server]: Server is running at https://localhost:${config.port}`);
-});
+    app.listen(config.port, () => {
+        console.log(`Server is running on port ${config.port}`);
+    }).on('error', () => {
+        process.exit(1);
+    });
+}
+
+startServer().then();

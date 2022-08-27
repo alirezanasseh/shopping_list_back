@@ -2,14 +2,14 @@ import {Request, Response} from 'express';
 import {randomBytes} from 'crypto';
 import argon2 from 'argon2';
 import {IUser, User} from '../user';
-import {generateToken} from '.';
+import {generateToken} from './index';
 import {Router} from 'express';
 
-const auth = (app: Router) => {
+export default function authRoutes (app: Router) {
     const route = Router();
     app.use('/auth', route);
 
-    route.post('/auth/register', async (req: Request, res: Response) => {
+    route.post('/register', async (req: Request, res: Response) => {
         // req.body : {name, email, password}
         let {name, email, password} = req.body;
         // Checking for repeated email
@@ -33,7 +33,7 @@ const auth = (app: Router) => {
         }
     });
 
-    route.post('/auth/login', async (req: Request, res: Response) => {
+    route.post('/login', async (req: Request, res: Response) => {
         // req.body : {email, password}
         const {email, password} = req.body;
         const user = await User.findOne({email}).lean();
@@ -55,5 +55,3 @@ const auth = (app: Router) => {
         }
     });
 }
-
-export default auth;
