@@ -9,8 +9,9 @@ npm start
 ```
 
 ## Task List
-- [ ] Separate service/controller/route layers
+- [ ] Separate service / controller / route layers
 - [ ] Validation
 - [ ] Authorization
 - [ ] Users API
+- [ ] Test Cases
 
