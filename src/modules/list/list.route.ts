@@ -1,8 +1,7 @@
 import {Request, Response, Router} from 'express';
-import jwt from 'jsonwebtoken';
 import {List} from './index';
-import {IJWTPayload} from '../auth';
 import {Item} from '../item';
+import {AuthCheckMiddleware} from '../../middlewares/auth_check';
 
 export default function listRoutes (app: Router) {
     const route = Router();
@@ -35,29 +34,14 @@ export default function listRoutes (app: Router) {
         res.json(result);
     });
 
-    route.get('/:listId/items', async (req: Request, res: Response) => {
+    route.get('/:listId/items', AuthCheckMiddleware, async (req: Request, res: Response) => {
         try {
-            if (req.cookies && req.cookies.token) {
-                console.log('req.cookies && req.cookies.token')
-                const decoded = jwt.verify(req.cookies.token, process.env.SECRET || '', {
-                    algorithms: ['HS256']
-                }) as IJWTPayload;
-                if (decoded.exp < Date.now()) {
-                    res.clearCookie('token', {
-                        httpOnly: true,
-                        secure: process.env.NODE_ENV === 'production'
-                    }).status(403).json({error: {message: 'Access denied'}});
-                } else {
-                    const listId = req.params.listId;
-                    if (listId) {
-                        const items = await Item.find({list: listId.toString()});
-                        res.json(items);
-                    } else {
-                        res.json({error: {message: 'List id should be provided'}});
-                    }
-                }
+            const listId = req.params.listId;
+            if (listId) {
+                const items = await Item.find({list: listId.toString()});
+                res.json(items);
             } else {
-                res.status(403).json({error: {message: 'Access denied'}});
+                res.json({error: {message: 'List id should be provided'}});
             }
         } catch (e) {
             res.status(403).json({error: {message: 'Access denied'}});
