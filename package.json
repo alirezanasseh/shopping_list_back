@@ -4,7 +4,7 @@
   "description": "Shopping List Backend",
   "main": "dist/index.js",
   "scripts": {
-    "start": "tsc & node .",
+    "start": "tsc & nodemon .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,11 +19,14 @@
   "homepage": "https://github.com/alirezanasseh/shopping_list_back#readme",
   "dependencies": {
     "argon2": "^0.28.7",
+    "celebrate": "^15.0.1",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.0.1",
     "express": "^4.18.1",
+    "joi": "^17.6.0",
     "jsonwebtoken": "^8.5.1",
-    "mongoose": "^6.4.1"
+    "mongoose": "^6.4.1",
+    "nodemon": "^2.0.19"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.3",
