@@ -11,6 +11,7 @@ npm start
 ## Task List
 - [ ] Separate service / controller / route layers
 - [ ] Validation
+- [ ] Middlewares
 - [ ] Authorization
 - [ ] Users API
 - [ ] Test Cases
