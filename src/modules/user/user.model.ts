@@ -18,6 +18,10 @@ const UserSchema = new mongoose.Schema<IUser>({
         type: 'String',
         required: true
     },
+    role: {
+        type: mongoose.Types.ObjectId,
+        ref: 'Role'
+    }
 }, {
     timestamps: true
 });
